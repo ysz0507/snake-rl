@@ -14,14 +14,15 @@ from torch.optim import Adam
 
 
 class NeuralNetwork(nn.Module):
-    def __init__(self, layers: nn.Sequential, learning_rate, loss):
+    def __init__(self, layers: nn.Sequential, learning_rate, loss, device):
         super(NeuralNetwork, self).__init__()
         self.layers = layers
         self.optimizer = torch.optim.RMSprop(self.parameters(), learning_rate)
         self.loss_function = loss
+        self.device = device
 
     def forward(self, x: np.ndarray):
-        tensor = torch.from_numpy(x)
+        tensor = torch.from_numpy(x).to(device=self.device)
         return self.layers(tensor)
 
     def get_weights(self):
@@ -40,7 +41,7 @@ class NeuralNetwork(nn.Module):
         print("+----------------------------------------------+\n")
 
     def train_on_batch(self, states, targets):
-        targets = torch.tensor(targets)
+        targets = torch.tensor(targets, device=self.device, dtype=torch.float32)
         self.train()
         output = self(states)
         loss = self.loss_function(output, targets)
@@ -51,6 +52,7 @@ class NeuralNetwork(nn.Module):
         # backpropagation, compute gradients
         loss.backward()  # apply gradients
         self.optimizer.step()
+        return loss.cpu().detach().numpy()
 
 
 class Agent:
@@ -350,7 +352,7 @@ class DeepQLearningAgent(Agent):
         model.eval()
         with torch.no_grad():
             model_outputs = model(board)
-        return model_outputs
+        return model_outputs.cpu().numpy()
 
     def _normalize_board(self, board):
         """Normalize the board before input to the network
@@ -443,7 +445,8 @@ class DeepQLearningAgent(Agent):
             nn.Sequential(*layers),
             learning_rate=0.0005,
             loss=nn.CrossEntropyLoss(),
-        )
+            device="mps",
+        ).to(device="mps")
 
     def set_weights_trainable(self):
         """Set selected layers to non trainable and compile the model"""
@@ -590,7 +593,7 @@ class DeepQLearningAgent(Agent):
         # create the target variable, only the column with action has different value
         target = self._get_model_outputs(s)
         # we bother only with the difference in reward estimate at the selected action
-        target = (1 - a) * target.numpy() + a * discounted_reward
+        target = (1 - a) * target + a * discounted_reward
         # fit
         loss = self._model.train_on_batch(self._normalize_board(s), target)
         # loss = round(loss, 5)
