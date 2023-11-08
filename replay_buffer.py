@@ -184,7 +184,7 @@ class ReplayBufferNumpy:
         self._n_actions = actions
 
         self._s = np.zeros(
-            (buffer_size, board_size, board_size, frames), dtype=np.uint8
+            (buffer_size, frames, board_size, board_size), dtype=np.uint8
         )
         self._next_s = self._s.copy()
         self._a = np.zeros((buffer_size,), dtype=np.uint8)

@@ -842,7 +842,8 @@ class SnakeNumpy:
             of size num games * baord size * board size * frames
         """
         board = np.stack([x for x in self._board], axis=3)
-        return board.copy()
+
+        return np.swapaxes(board, 1, 3).copy()
 
     def _random_seq(self):
         """Creates num games boards of size board size * board size

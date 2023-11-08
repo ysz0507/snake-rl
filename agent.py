@@ -21,7 +21,7 @@ class NeuralNetwork(nn.Module):
         self.loss_function = loss
 
     def forward(self, x: np.ndarray):
-        tensor = torch.from_numpy(np.swapaxes(x, 1, 3))
+        tensor = torch.from_numpy(x)
         return self.layers(tensor)
 
     def get_weights(self):
@@ -308,7 +308,7 @@ class DeepQLearningAgent(Agent):
             self._target_net = self._agent_model()
             self.update_target_net()
 
-    def _prepare_input(self, board):
+    def _prepare_input(self, board: np.ndarray):
         """Reshape input and normalize
 
         Parameters
