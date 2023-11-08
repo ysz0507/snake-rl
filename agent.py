@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 from copy import deepcopy
 from torch.optim import Adam
+import re
 
 
 class NeuralNetwork(nn.Module):
@@ -34,11 +35,32 @@ class NeuralNetwork(nn.Module):
 
     def print_summary(self):
         print("+------------------- Summary ------------------+")
-        print("|         Layer         |        Shape         |")
-        print("+-----------------------+----------------------+")
-        for name, parameter in self.named_parameters():
-            print(f"| {name:<21} | {str(list(parameter.shape)):<20} |")
-        print("+----------------------------------------------+\n")
+        print("|                                              |")
+        names = []
+        shapes = []
+        for k, v in self.named_parameters():
+            names.append(k)
+            shapes.append(str(list(v.shape)))
+        parameters_i = 0
+        for layers_i, layer in enumerate(self.layers):
+            current_layer = type(layer).__name__
+
+            if len(names) > parameters_i and names[parameters_i].startswith(
+                f"layers.{str(layers_i)}."
+            ):
+                print(f"+------------------- {current_layer} -------------------+")
+                while len(names) > parameters_i and names[parameters_i].startswith(
+                    f"layers.{str(layers_i)}."
+                ):
+                    print(f"| {names[parameters_i]:<21} | {shapes[parameters_i]:<20} |")
+                    parameters_i += 1
+                print("+-----------------------+----------------------+")
+            else:
+                print(f"| {current_layer:^44} |")
+        print("")
+        # print(
+        #     f"| {current_layer:<10} | {current_layer:<21} | {current_layer:<20} |"
+        # )
 
     def train_on_batch(self, states, targets):
         targets = torch.tensor(targets, device=self.device, dtype=torch.float32)
@@ -423,17 +445,17 @@ class DeepQLearningAgent(Agent):
                 layer = nn.Linear(
                     out_features=l["units"], in_features=calculation_sample.shape[1]
                 )
-            elif "activation" in l:
-                if l["activation"] == "relu":
-                    layer = nn.ReLU()
-                else:
-                    raise Exception(
-                        "activation function {:s} not supported".format(l["activation"])
-                    )
             else:
                 raise Exception("Layer type not supported".format(name))
             layers.append(layer)
             calculation_sample = layer(calculation_sample)
+            if "activation" in l:
+                if l["activation"] == "relu":
+                    layers.append(nn.ReLU())
+                else:
+                    raise Exception(
+                        "activation function {:s} not supported".format(l["activation"])
+                    )
 
         layers.append(
             nn.Linear(
