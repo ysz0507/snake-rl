@@ -31,8 +31,8 @@ with open("model_config/{:s}.json".format(version), "r") as f:
     buffer_size = m["buffer_size"]
 
 # define no of episodes, logging frequency
-# episodes = 2 * (10**5)
-episodes = 1000
+episodes = 2 * (10**5)
+# episodes = 10000
 log_frequency = 500
 games_eval = 8
 
@@ -113,6 +113,7 @@ model_logs = {
     "length_mean": [],
     "games": [],
     "loss": [],
+    "epsilon": [],
 }
 for index in tqdm(range(episodes)):
     # make small changes to the buffer and slowly train
@@ -155,8 +156,9 @@ for index in tqdm(range(episodes)):
         model_logs["length_mean"].append(round(int(current_lengths) / current_games, 2))
         model_logs["games"].append(current_games)
         model_logs["loss"].append(loss)
+        model_logs["epsilon"].append(epsilon)
         pd.DataFrame(model_logs)[
-            ["iteration", "reward_mean", "length_mean", "games", "loss"]
+            ["iteration", "reward_mean", "length_mean", "games", "loss", "epsilon"]
         ].to_csv("model_logs/{:s}.csv".format(version), index=False)
 
     # copy weights to target network and save models

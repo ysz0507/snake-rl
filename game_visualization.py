@@ -7,8 +7,6 @@ from game_environment import Snake, SnakeNumpy
 from utils import visualize_game
 import json
 
-# import keras.backend as K
-
 # some global variables
 version = "v17.1"
 
@@ -21,7 +19,7 @@ with open("model_config/{:s}.json".format(version), "r") as f:
     n_actions = m["n_actions"]
     obstacles = bool(m["obstacles"])
 
-iteration_list = [163500]
+iteration_list = [4000, 14000, 24000, 34000]
 max_time_limit = 398
 
 # setup the environment

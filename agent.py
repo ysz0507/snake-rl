@@ -10,8 +10,6 @@ import json
 import torch
 import torch.nn as nn
 from copy import deepcopy
-from torch.optim import Adam
-import re
 
 
 class NeuralNetwork(nn.Module):
@@ -58,11 +56,8 @@ class NeuralNetwork(nn.Module):
             else:
                 print(f"| {current_layer:^44} |")
         print("")
-        # print(
-        #     f"| {current_layer:<10} | {current_layer:<21} | {current_layer:<20} |"
-        # )
 
-    def train_on_batch(self, states, targets):
+    def train_on_batch(self, states, targets: np.ndarray):
         targets = torch.tensor(targets, device=self.device, dtype=torch.float32)
         self.train()
         output = self(states)
@@ -466,7 +461,7 @@ class DeepQLearningAgent(Agent):
         return NeuralNetwork(
             nn.Sequential(*layers),
             learning_rate=0.0005,
-            loss=nn.CrossEntropyLoss(),
+            loss=nn.MSELoss(),
             device="mps",
         ).to(device="mps")
 
