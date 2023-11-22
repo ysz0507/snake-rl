@@ -3,3 +3,5 @@ models_1/
 virtual-env/
 virtual-env-gpu/
 .vscode
+.DS_Store
+s*.mp4
