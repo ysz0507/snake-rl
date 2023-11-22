@@ -12,8 +12,7 @@
             "filters":16,
             "kernel_size":[3,3],
             "activation":"relu",
-            "data_format":"channels_last",
-            "padding":"same"
+            "data_format":"channels_last"
         },
         "Conv2D_1":{
             "filters":32,
