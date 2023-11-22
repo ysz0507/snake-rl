@@ -461,18 +461,9 @@ class DeepQLearningAgent(Agent):
         return NeuralNetwork(
             nn.Sequential(*layers),
             learning_rate=0.0005,
-            loss=nn.MSELoss(),
+            loss=nn.HuberLoss(),
             device="mps",
         ).to(device="mps")
-
-    def set_weights_trainable(self):
-        """Set selected layers to non trainable and compile the model"""
-        for layer in self._model.layers:
-            layer.trainable = False
-        # the last dense layers should be trainable
-        for s in ["action_prev_dense", "action_values"]:
-            self._model.get_layer(s).trainable = True
-        self._model.compile(optimizer=self._model.optimizer, loss=self._model.loss)
 
     def get_action_proba(self, board, values=None):
         """Returns the action probability values using the DQN model

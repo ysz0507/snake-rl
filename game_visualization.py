@@ -19,8 +19,9 @@ with open("model_config/{:s}.json".format(version), "r") as f:
     n_actions = m["n_actions"]
     obstacles = bool(m["obstacles"])
 
-iteration_list = [4000, 14000, 24000, 34000]
-max_time_limit = 398
+# iteration_list = [4 * (10**5) - 1000 * x for x in range(400)]
+iteration_list = [2033000 - 500 * x for x in range(2)]
+max_time_limit = 398 * 0.5
 
 # setup the environment
 env = Snake(
@@ -60,4 +61,5 @@ for iteration in iteration_list:
             debug=False,
             animate=True,
             fps=12,
+            min_food_count=-1,
         )

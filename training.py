@@ -12,7 +12,7 @@ from collections import deque
 import pandas as pd
 import time
 from utils import play_game, play_game2
-from game_environment import Snake, SnakeNumpy
+from game_environment import SnakeNumpy
 from agent import DeepQLearningAgent
 import json
 import sys
@@ -31,7 +31,7 @@ with open("model_config/{:s}.json".format(version), "r") as f:
     buffer_size = m["buffer_size"]
 
 # define no of episodes, logging frequency
-episodes = 2 * (10**5)
+episodes = 4 * (10**5)
 # episodes = 10000
 log_frequency = 500
 games_eval = 8
@@ -43,6 +43,7 @@ agent = DeepQLearningAgent(
     n_actions=n_actions,
     buffer_size=buffer_size,
     version=version,
+    gamma=0.98,
 )
 agent.print_models()
 
@@ -54,8 +55,6 @@ sample_actions = False
 n_games_training = 8 * 16
 decay = 0.97
 
-
-# decay = np.exp(np.log((epsilon_end/epsilon))/episodes)
 
 # use only for DeepQLearningAgent
 # play some games initially to fill the buffer
@@ -115,7 +114,17 @@ model_logs = {
     "loss": [],
     "epsilon": [],
 }
-for index in tqdm(range(episodes)):
+
+
+def generator():
+    while True:
+        yield
+
+
+# for index in tqdm(range(episodes)):
+index = 0
+for _ in tqdm(generator()):
+    index += 1
     # make small changes to the buffer and slowly train
     _, _, _ = play_game2(
         env,
@@ -166,4 +175,5 @@ for index in tqdm(range(episodes)):
         agent.update_target_net()
         agent.save_model(file_path="models/{:s}".format(version), iteration=(index + 1))
         # keep some epsilon alive for training
+        # if index >= 400 * log_frequency:
         epsilon = max(epsilon * decay, epsilon_end)

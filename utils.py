@@ -315,7 +315,13 @@ def play_game2(
 
 
 def visualize_game(
-    env, agent, path="images/game_visual.png", debug=False, animate=False, fps=10
+    env,
+    agent,
+    path="images/game_visual.png",
+    debug=False,
+    animate=False,
+    fps=10,
+    min_food_count=-1,
 ):
     print("Starting Visualization")
     game_images = []
@@ -324,7 +330,7 @@ def visualize_game(
     color_map = {0: "lightgray", 1: "g", 2: "lightgreen", 3: "r", 4: "darkgray"}
     s = env.reset()
     board_size = env.get_board_size()
-    game_images.append([s[:, :, 0], 0])
+    game_images.append([s[0, :, :], 0])
     done = 0
     while not done:
         # print('frame no ', len(game_images))
@@ -333,12 +339,15 @@ def visualize_game(
         next_s, r, done, info, _ = env.step(a)
         qvalues.append(agent._get_model_outputs(s)[0])
         food_count.append(info["food"])
-        game_images.append([next_s[:, :, 0], info["time"]])
+        game_images.append([next_s[0, :, :], info["time"]])
         s = next_s.copy()
         if debug:
             print(info["time"], qvalues[-1], a, r, info["food"], done, legal_moves)
     qvalues.append([0] * env.get_num_actions())
-    food_count.append(food_count[-1])
+    if food_count[-1] < min_food_count:
+        print("throw {:d} foods away".format(food_count[-1]))
+        return
+
     print("Game ran for {:d} frames".format(len(game_images)))
     # append a few static frames in the end for pause effect
     for _ in range(5):

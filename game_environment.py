@@ -182,7 +182,9 @@ class Snake:
         self._n_actions = 4
         self._board_size = board_size
         self._n_frames = frames
-        self._rewards = {"out": -1, "food": 1, "time": 0, "no_food": 0}
+        # self._rewards = {"out": -1, "food": 1, "time": 0, "no_food": 0}
+        self._rewards = {"out": -1.0, "food": 25.0, "time": -0.01, "no_food": -0.01}
+        # self._rewards = {"out": 0.0, "food": 10.0, "time": 0.0, "no_food": 0.0}
         # start length is constrained to be less than half of board size
         # self._start_length = min(start_length, (board_size-2)//2)
         self._start_length = 2
@@ -268,7 +270,7 @@ class Snake:
             Current environment state
         """
         board = np.dstack([x for x in self._board])
-        return board.copy()
+        return np.swapaxes(board, 0, 2).copy()
 
     def _get_food(self):
         """Find the coordinates of the point to put the food at
@@ -801,7 +803,7 @@ class SnakeNumpy:
         self._board_size = board_size
         self._n_frames = frames
         self._n_games = games
-        self._rewards = {"out": -1, "food": 1, "time": 0, "no_food": 0}
+        self._rewards = {"out": -1.0, "food": 25.0, "time": -0.01, "no_food": -0.01}
         # start length is constrained to be less than half of board size
         # self._start_length = min(start_length, (board_size-2)//2)
         self._start_length = 2  # fix for random positioning
@@ -1170,7 +1172,7 @@ class SnakeNumpy:
         # set time elapsed, done and cumulative rewards to 0
         self._time = np.zeros((self._n_games), dtype=np.uint16)
         self._done = np.zeros((self._n_games,), dtype=np.uint8)
-        self._cumul_rewards = np.zeros((self._n_games,), dtype=np.int16)
+        self._cumul_rewards = np.zeros((self._n_games,), dtype=np.float32)
         # set first frame
         self._set_first_frame()
         return self._queue_to_board()
@@ -1231,7 +1233,7 @@ class SnakeNumpy:
         self._snake_length[f] = self._start_length
         self._time[f] = 0
         self._done[f] = 0
-        self._cumul_rewards[f] = 0
+        self._cumul_rewards[f] = 0.0
         self._get_food()
         self._set_first_frame()
         # copy the first frame (without food) to all the remaining
