@@ -13,7 +13,7 @@ import pandas as pd
 import time
 from utils import play_game, play_game2
 from game_environment import SnakeNumpy
-from agent import DeepQLearningAgent
+from agent import DeepQLearningAgent, BreadthFirstSearchAgent
 import json
 import sys
 
@@ -31,7 +31,7 @@ with open("model_config/{:s}.json".format(version), "r") as f:
     buffer_size = m["buffer_size"]
 
 # define no of episodes, logging frequency
-episodes = 4 * (10**5)
+episodes = 3 * (10**5)
 # episodes = 10000
 log_frequency = 500
 games_eval = 8
@@ -46,6 +46,7 @@ agent = DeepQLearningAgent(
     gamma=0.98,
 )
 agent.print_models()
+agent.load_model("models/v17.1", iteration=300000)
 
 # setup the epsilon range and decay rate for epsilon
 # define rewrad type and update frequency, see utils for more details
@@ -53,7 +54,9 @@ epsilon, epsilon_end = 1, 0.01
 reward_type = "current"
 sample_actions = False
 n_games_training = 8 * 16
-decay = 0.97
+decay = 0.989
+# buffer_path = "models/v17.1"
+buffer_path = None
 
 
 # use only for DeepQLearningAgent
@@ -71,20 +74,24 @@ env = SnakeNumpy(
     obstacles=obstacles,
     version=version,
 )
-ct = time.time()
-_ = play_game2(
-    env,
-    agent,
-    n_actions,
-    n_games=games,
-    record=True,
-    epsilon=epsilon,
-    verbose=True,
-    reset_seed=False,
-    frame_mode=True,
-    total_frames=games * 64,
-)
-print("Playing {:d} frames took {:.2f}s".format(games * 64, time.time() - ct))
+if buffer_path:
+    agent.load_buffer(buffer_path, iteration=1)
+else:
+    ct = time.time()
+    _ = play_game2(
+        env,
+        agent,
+        n_actions,
+        n_games=games,
+        record=True,
+        epsilon=epsilon,
+        verbose=True,
+        reset_seed=False,
+        frame_mode=True,
+        total_frames=games * 64 * 2,
+    )
+    print("Playing {:d} frames took {:.2f}s".format(games * 64, time.time() - ct))
+
 
 env = SnakeNumpy(
     board_size=board_size,
@@ -121,9 +128,9 @@ def generator():
         yield
 
 
-# for index in tqdm(range(episodes)):
-index = 0
-for _ in tqdm(generator()):
+# index = 0
+# for _ in tqdm(generator()):
+for index in tqdm(range(episodes)):
     index += 1
     # make small changes to the buffer and slowly train
     _, _, _ = play_game2(

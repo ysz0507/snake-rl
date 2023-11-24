@@ -635,3 +635,162 @@ class DeepQLearningAgent(Agent):
 
         self._model.set_weights(agent_for_copy._model.get_weights())
         self._target_net.set_weights(agent_for_copy._model_pred.get_weights())
+
+
+class BreadthFirstSearchAgent(Agent):
+    """
+    finds the shortest path from head to food
+    while avoiding the borders and body
+    """
+
+    def _get_neighbors(self, point, values, board):
+        """
+        point is a single integer such that
+        row = point//self._board_size
+        col = point%self._board_size
+        """
+        row, col = self._point_to_row_col(point)
+        neighbors = []
+        for delta_row, delta_col in [[-1, 0], [1, 0], [0, 1], [0, -1]]:
+            new_row, new_col = row + delta_row, col + delta_col
+            if board[new_row][new_col] in [
+                values["board"],
+                values["food"],
+                values["head"],
+            ]:
+                neighbors.append(new_row * self._board_size + new_col)
+        return neighbors
+
+    def _get_shortest_path(self, board, values):
+        # get the head coordinate
+        board = board[0, :, :]
+        head = (self._board_grid * (board == values["head"])).sum()
+        points_to_search = deque()
+        points_to_search.append(head)
+        path = []
+        row, col = self._point_to_row_col(head)
+        distances = np.ones((self._board_size, self._board_size)) * np.inf
+        distances[row][col] = 0
+        visited = np.zeros((self._board_size, self._board_size))
+        visited[row][col] = 1
+        found = False
+        while not found:
+            if len(points_to_search) == 0:
+                # complete board has been explored without finding path
+                # take any arbitrary action
+                path = []
+                break
+            else:
+                curr_point = points_to_search.popleft()
+                curr_row, curr_col = self._point_to_row_col(curr_point)
+                n = self._get_neighbors(curr_point, values, board)
+                if len(n) == 0:
+                    # no neighbors available, explore other paths
+                    continue
+                # iterate over neighbors and calculate distances
+                for p in n:
+                    row, col = self._point_to_row_col(p)
+                    if distances[row][col] > 1 + distances[curr_row][curr_col]:
+                        # update shortest distance
+                        distances[row][col] = 1 + distances[curr_row][curr_col]
+                    if board[row][col] == values["food"]:
+                        # reached food, break
+                        found = True
+                        break
+                    if visited[row][col] == 0:
+                        visited[curr_row][curr_col] = 1
+                        points_to_search.append(p)
+        # create the path going backwards from the food
+        curr_point = (self._board_grid * (board == values["food"])).sum()
+        path.append(curr_point)
+        while 1:
+            curr_row, curr_col = self._point_to_row_col(curr_point)
+            if distances[curr_row][curr_col] == np.inf:
+                # path is not possible
+                return []
+            if distances[curr_row][curr_col] == 0:
+                # path is complete
+                break
+            n = self._get_neighbors(curr_point, values, board)
+            for p in n:
+                row, col = self._point_to_row_col(p)
+                if (
+                    distances[row][col] != np.inf
+                    and distances[row][col] == distances[curr_row][curr_col] - 1
+                ):
+                    path.append(p)
+                    curr_point = p
+                    break
+        return path
+
+    def move(self, board, legal_moves, values):
+        if board.ndim == 3:
+            board = board.reshape((1,) + board.shape)
+        board_main = board.copy()
+        a = np.zeros((board.shape[0],), dtype=np.uint8)
+        for i in range(board.shape[0]):
+            board = board_main[i, :, :, :]
+            path = self._get_shortest_path(board, values)
+            if len(path) == 0:
+                a[i] = 1
+                continue
+            next_head = path[-2]
+            curr_head = (self._board_grid * (board[0, :, :] == values["head"])).sum()
+            # get prev head position
+            if (
+                (board[0, :, :] == values["head"]) + (board[0, :, :] == values["snake"])
+                == (board[1, :, :] == values["head"])
+                + (board[1, :, :] == values["snake"])
+            ).all():
+                # we are at the first frame, snake position is unchanged
+                prev_head = curr_head - 1
+            else:
+                # we are moving
+                prev_head = (
+                    self._board_grid * (board[1, :, :] == values["head"])
+                ).sum()
+            curr_head_row, curr_head_col = self._point_to_row_col(curr_head)
+            prev_head_row, prev_head_col = self._point_to_row_col(prev_head)
+            next_head_row, next_head_col = self._point_to_row_col(next_head)
+            dx, dy = next_head_col - curr_head_col, -next_head_row + curr_head_row
+            if dx == 1 and dy == 0:
+                a[i] = 0
+            elif dx == 0 and dy == 1:
+                a[i] = 1
+            elif dx == -1 and dy == 0:
+                a[i] = 2
+            elif dx == 0 and dy == -1:
+                a[i] = 3
+            else:
+                a[i] = 0
+        return a
+        """
+        d1 = (curr_head_row - prev_head_row, curr_head_col - prev_head_col)
+        d2 = (next_head_row - curr_head_row, next_head_col - curr_head_col)
+        # take cross product
+        turn_dir = d1[0]*d2[1] - d1[1]*d2[0]
+        if(turn_dir == 0):
+            return 1
+        elif(turn_dir == -1):
+            return 0
+        else:
+            return 2
+        """
+
+    def get_action_proba(self, board, values):
+        """for compatibility"""
+        move = self.move(board, values)
+        prob = [0] * self._n_actions
+        prob[move] = 1
+        return prob
+
+    def _get_model_outputs(self, board=None, model=None):
+        """for compatibility"""
+        return [[0] * self._n_actions]
+
+    def load_model(self, **kwargs):
+        """for compatibility"""
+        pass
+
+    def print_models(self):
+        print("Training using Breadth first search")

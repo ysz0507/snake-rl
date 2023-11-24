@@ -20,7 +20,7 @@ with open("model_config/{:s}.json".format(version), "r") as f:
     obstacles = bool(m["obstacles"])
 
 # iteration_list = [4 * (10**5) - 1000 * x for x in range(400)]
-iteration_list = [2033000 - 500 * x for x in range(2)]
+iteration_list = [300000 - 500 * x for x in range(2)]
 max_time_limit = 398 * 0.5
 
 # setup the environment

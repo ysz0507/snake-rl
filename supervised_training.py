@@ -13,11 +13,11 @@ import pandas as pd
 import time
 from utils import play_game2
 from game_environment import SnakeNumpy
-from agent import BreadthFirstSearchAgent, SupervisedLearningAgent
+from agent import BreadthFirstSearchAgent
 import json
 
 # some global variables
-version = "v15.5"
+version = "v17.1"
 
 # get training configurations
 with open("model_config/{:s}.json".format(version), "r") as f:
@@ -30,8 +30,8 @@ with open("model_config/{:s}.json".format(version), "r") as f:
     obstacles = bool(m["obstacles"])
 
 max_time_limit = 28  # 998
-generate_training_data = False
-do_training = True
+generate_training_data = True
+do_training = False
 n_games_training = 100
 
 # setup the environment
