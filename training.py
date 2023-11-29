@@ -195,7 +195,7 @@ def train(
                 ["iteration", "reward_mean", "length_mean", "games", "loss"]
             ].to_csv("model_logs/{:s}.csv".format(version), index=False)
 
-        # copy weights to target network and save models
+        # copy weights to target network
         if (index + 1) % log_frequency == 0:
             agent.update_target_net()
             # keep some epsilon alive for training

@@ -247,7 +247,6 @@ def play_game2(
         legal_moves = env.get_legal_moves()
         if np.random.random() <= epsilon:
             # use epsilon greedy policy to get next action
-            # action = np.random.choice(n_actions, n_games)
             action = np.argmax(
                 np.where(legal_moves > 0, np.random.random((n_games, n_actions)), -1),
                 axis=1,

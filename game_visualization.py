@@ -8,7 +8,7 @@ from utils import visualize_game
 import json
 
 # some global variables
-version = "v17.1"
+version = "v17.5"
 
 with open("model_config/{:s}.json".format(version), "r") as f:
     m = json.loads(f.read())
@@ -20,8 +20,9 @@ with open("model_config/{:s}.json".format(version), "r") as f:
     obstacles = bool(m["obstacles"])
 
 # iteration_list = [4 * (10**5) - 1000 * x for x in range(400)]
-iteration_list = [300000 - 500 * x for x in range(2)]
-max_time_limit = 398 * 0.5
+# iteration_list = [300000 - 500 * x for x in range(2)]
+iteration_list = [774500]
+max_time_limit = 398
 
 # setup the environment
 env = Snake(

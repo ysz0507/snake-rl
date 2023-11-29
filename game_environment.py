@@ -175,21 +175,14 @@ class Snake:
             if obstacles is set to True
         """
 
-        # self._value = {'snake':255, 'board':0, 'food':128, 'head':180, 'border':80}
         self._value = {"snake": 1, "board": 0, "food": 3, "head": 2, "border": 4}
-        # self._actions = [-1, 0, 1] # -1 left, 0 nothing, 1 right
         self._actions = {-1: -1, 0: 0, 1: 1, 2: 2, 3: 3, 4: -1}
         self._n_actions = 4
         self._board_size = board_size
         self._n_frames = frames
         self._rewards = {"out": -1.0, "food": 1.0, "time": 0.0, "no_food": 0.0}
-        # self._rewards = {"out": -1.0, "food": 25.0, "time": -0.01, "no_food": -0.01}
-        # self._rewards = {"out": 0.0, "food": 10.0, "time": 0.0, "no_food": 0.0}
         # start length is constrained to be less than half of board size
-        # self._start_length = min(start_length, (board_size-2)//2)
         self._start_length = 2
-        # set numpy seed for reproducible results
-        # np.random.seed(seed)
         # time limit to contain length of game, -1 means run till end
         self._max_time_limit = max_time_limit
         # obstacles

@@ -26,13 +26,6 @@ class NeuralNetwork(nn.Module):
             tensor = op(tensor)
         return tensor
 
-    def get_weights(self):
-        return deepcopy(self._parameters)
-
-    def set_weights(self, parameters):
-        self._parameters = parameters
-        return
-
     def print_summary(self):
         print("+------------------- Summary ------------------+")
         print("|                                              |")
@@ -392,8 +385,6 @@ class DeepQLearningAgent(Agent):
         board : Numpy array
             The copy of board state after normalization
         """
-        # return board.copy()
-        # return((board/128.0 - 1).copy())
         return board.astype(np.float32) / 4.0
 
     def move(self, board, legal_moves, value=None):
@@ -552,7 +543,6 @@ class DeepQLearningAgent(Agent):
             self._target_net.load_state_dict(
                 torch.load("{}/model_{:04d}_target.h5".format(file_path, iteration))
             )
-        # print("Couldn't locate models at {}, check provided path".format(file_path))
 
     def print_models(self):
         """Print the current models using summary method"""
@@ -612,7 +602,6 @@ class DeepQLearningAgent(Agent):
         target = (1 - a) * target + a * discounted_reward
         # fit
         loss = self._model.train_on_batch(self._normalize_board(s), target)
-        # loss = round(loss, 5)
         return loss
 
     def update_target_net(self):
@@ -634,15 +623,6 @@ class DeepQLearningAgent(Agent):
                     == self._target_net.layers[i].weights[j].numpy()
                 ).all()
                 print("Layer {:d} Weights {:d} Match : {:d}".format(i, j, int(c)))
-
-    def copy_weights_from_agent(self, agent_for_copy):
-        """Update weights between competing agents which can be used
-        in parallel training
-        """
-        assert isinstance(agent_for_copy, self), "Agent type is required for copy"
-
-        self._model.set_weights(agent_for_copy._model.get_weights())
-        self._target_net.set_weights(agent_for_copy._model_pred.get_weights())
 
 
 class BreadthFirstSearchAgent(Agent):
