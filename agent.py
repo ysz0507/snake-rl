@@ -22,7 +22,9 @@ class NeuralNetwork(nn.Module):
 
     def forward(self, x: np.ndarray):
         tensor = torch.from_numpy(x).to(device=self.device)
-        return self.layers(tensor)
+        for op in self.layers:
+            tensor = op(tensor)
+        return tensor
 
     def get_weights(self):
         return deepcopy(self._parameters)
@@ -244,6 +246,12 @@ class Agent:
             iteration = 0
         with open("{}/buffer_{:04d}".format(file_path, iteration), "rb") as f:
             self._buffer = pickle.load(f)
+            # Provides compatibility for buffers saved in the tensor flow format, with channels last
+            if self._buffer._s.shape[-1] != 10:
+                self._buffer._s = np.swapaxes(self._buffer._s, 1, 3)
+                self._buffer._s = np.swapaxes(self._buffer._s, 2, 3)
+                self._buffer._next_s = np.swapaxes(self._buffer._next_s, 1, 3)
+                self._buffer._next_s = np.swapaxes(self._buffer._next_s, 2, 3)
 
     def _point_to_row_col(self, point):
         """Covert a point value to row, col value
@@ -342,7 +350,7 @@ class DeepQLearningAgent(Agent):
         """
         if board.ndim == 3:
             board = board.reshape((1,) + self._input_shape)
-        board = self._normalize_board(board.copy())
+        board = self._normalize_board(board)
         return board.copy()
 
     def _get_model_outputs(self, board, model=None):
@@ -432,7 +440,7 @@ class DeepQLearningAgent(Agent):
                     in_channels=calculation_sample.shape[1],
                     out_channels=l["filters"],
                     kernel_size=l["kernel_size"],
-                    padding="same",
+                    padding=l["padding"] if "padding" in l.keys() else 0,
                 )
             elif "Flatten" in name:
                 layer = nn.Flatten()
@@ -613,7 +621,7 @@ class DeepQLearningAgent(Agent):
         This should not be updated very frequently
         """
         if self._use_target_net:
-            self._target_net.set_weights(self._model.get_weights())
+            self._target_net.load_state_dict(self._model.state_dict())
 
     def compare_weights(self):
         """Simple utility function to heck if the model and target
