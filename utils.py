@@ -148,7 +148,6 @@ def play_game2(
     n_games=100,
     epsilon=0.01,
     record=True,
-    verbose=False,
     reset_seed=False,
     sample_actions=False,
     reward_type="current",
@@ -156,7 +155,7 @@ def play_game2(
     total_frames=10,
     total_games=None,
     stateful=False,
-    debug=False,
+    showProgressBar=False,
 ):
     """
     function to play some games and return the rewards list
@@ -236,11 +235,15 @@ def play_game2(
     3) if using frame mode and total games is provded, then total games
        playes < total games asked for
     """
+    if showProgressBar:
+        progressBar = tqdm()
     while (
         (not frame_mode and not done.all())
         or (frame_mode and total_games is None and frames < total_frames)
         or (frame_mode and total_games is not None and games < total_games)
     ):
+        if showProgressBar:
+            progressBar.update()
         legal_moves = env.get_legal_moves()
         if np.random.random() <= epsilon:
             # use epsilon greedy policy to get next action

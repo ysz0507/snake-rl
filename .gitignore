@@ -1,7 +1,9 @@
 __pycache__/
-models_1/
 virtual-env/
 virtual-env-gpu/
 .vscode
 .DS_Store
 s*.mp4
+model_*
+buffer_*
+obstacles_*
